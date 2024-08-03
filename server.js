@@ -15,7 +15,7 @@ const app = express()
 
 //Middlewares
 app.use(express.json())
-
+ 
 
 
 if(process.env.NODE_ENV === 'development'){
@@ -29,6 +29,10 @@ if(process.env.NODE_ENV === 'development'){
 // Routes
 app.use('/api/v1/categories', categoryRoute)
 
+// Global error handling middleware
+app.use((err,req,res,next)=>{
+    res.status(500).json({err})
+})
 const PORT = process.env.PORT 
 app.listen(PORT,()=>{
     console.log(`App is Running on ${PORT}`)
