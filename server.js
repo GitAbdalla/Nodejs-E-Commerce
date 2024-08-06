@@ -7,6 +7,7 @@ dotenv.config({path:'config.env'})
 const ApiError = require('./utils/apiError')
 const dbConnection= require('./config/database')
 const categoryRoute = require('./routes/categoryRoute')
+const subCategoryRoute = require('./routes/subCategoryRoute')
 const globalError = require('./middlewares/errorMiddleware')
 
 // connect with db
@@ -19,7 +20,6 @@ const app = express()
 app.use(express.json())
  
 
-
 if(process.env.NODE_ENV === 'development'){
     app.use(morgan('dev'))
     console.log(`mode: ${ process.env.NODE_ENV}`)
@@ -27,7 +27,7 @@ if(process.env.NODE_ENV === 'development'){
 
 // Routes
 app.use('/api/v1/categories', categoryRoute)
-
+app.use('/api/v1/subcategories', subCategoryRoute)
 app.use('*', (req,res,next)=>{
     // const err = new Error(`Cant find this route: ${req.originalUrl}`)
     // next(err.message)
