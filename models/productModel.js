@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema(
     slug: {
       type: String,
       lowercase: true,
-      reuired: true,
+      required: true,
     },
     description: {
       type: String,
@@ -31,7 +31,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, "product price is required"],
       trim: true,
-      max: [20, "Too long product price"],
+      max: [200000, "Too long product price"],
     },
     priceAfterDiscount: {
       type: Number,
