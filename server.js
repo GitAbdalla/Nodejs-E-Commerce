@@ -29,8 +29,6 @@ if(process.env.NODE_ENV === 'development'){
 app.use('/api/v1/categories', categoryRoute)
 app.use('/api/v1/subcategories', subCategoryRoute)
 app.use('*', (req,res,next)=>{
-    // const err = new Error(`Cant find this route: ${req.originalUrl}`)
-    // next(err.message)
     next( new ApiError(`Cant find this route: ${req.originalUrl}`,400))
 })
 
