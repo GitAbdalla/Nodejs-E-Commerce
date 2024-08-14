@@ -1,7 +1,8 @@
-const { check } = require("express-validator");
+const { check, Result } = require("express-validator");
 const slugify = require("slugify");
-const  validatorMiddleware  = require("../../middlewares/validatorMiddlware");
-
+const validatorMiddleware = require("../../middlewares/validatorMiddlware");
+const Category = require("../../models/categoryModel");
+const SubCategory = require("../../models/subCategoryModel");
 exports.createProductValidator = [
   check("title")
     .isLength({ min: 3 })
@@ -57,8 +58,47 @@ exports.createProductValidator = [
     .notEmpty()
     .withMessage("Product must be belong to a category")
     .isMongoId()
-    .withMessage("Invalid ID formate"),
-  check("subcategory").optional().isMongoId().withMessage("Invalid ID foramte"),
+    .withMessage("Invalid ID formate")
+    .custom((categoryId) =>
+      Category.findById(categoryId).then((category) => {
+        if (!category) {
+          return Promise.reject(
+            new Error(`No category for this id: ${categoryId}`)
+          );
+        }
+      })
+    ),
+  check("subcategories")
+    .optional()
+    .isMongoId()
+    .withMessage("Invalid ID foramte")
+    .custom((subcategoriesIds) =>
+      SubCategory.find({ _id: { $exists: true, $in: subcategoriesIds } }).then(
+        (result) => {
+          if (result.length < 1 || result.length !== subcategoriesIds.length) {
+            return Promise.reject(new Error(`Invalid subcategories Ids`));
+          }
+        }
+      )
+    )
+    .custom((val, { req }) =>
+      SubCategory.find({ category: req.body.category }).then(
+        (subcategories) => {
+          const subcategoriesIdsInDB = [];
+          subcategories.forEach((subCategory) => {
+            subcategoriesIdsInDB.push(subCategory._id.toString());
+          });
+          // check if subcategories id in db inculde sucategories in req.body (true / false)
+           const checker = (target, arr) => target.every((v)=> arr.includes(v))
+          if (!checker(val, subcategoriesIdsInDB)) {
+            return Promise.reject(
+              new Error(`subcategories dont belong to this category`)
+            );
+          }
+        }
+      )
+    ),
+
   check("brand").optional().isMongoId().withMessage("Invalid ID foramte"),
   check("ratingAverage")
     .optional()
