@@ -7,24 +7,36 @@ const ApiError = require("../utils/apiError");
 // @route GET /api/v1/products
 // @access Public
 exports.getProducts = asyncHandler(async (req, res) => {
-  
+
   // 1) Filtering
   const queryStringObj = { ...req.query };
   const excludesFields = ["page", "sort", "limit", "fields"];
   excludesFields.forEach((field) => delete queryStringObj[field]);
+
+  // Apply filteration using[ gte , gt , lte , lt]
+  let queryStr = JSON.stringify(queryStringObj)
+  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`)
 
   // 2) pagination
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 5;
   const skip = (page - 1) * limit;
 
-  // 3) Build query
-  const mongooseQuery = Product.find(queryStringObj)
+  //  Build query
+  let mongooseQuery = Product.find(JSON.parse(queryStr))
     .skip(skip)
     .limit(limit)
     .populate({ path: "category", select: "name -_id" });
 
-  // 4) Execute query
+  // 3) Sorting
+  if(req.query.sort){
+    const sortBy = req.query.sort.split(',').join(' ')
+    mongooseQuery = mongooseQuery.sort(sortBy)
+  }else {
+    mongooseQuery = mongooseQuery.sort("-createAt")
+  }
+
+  //  Execute query
   const products = await mongooseQuery;
 
   res.status(200).json({ results: products.length, page, data: products });
