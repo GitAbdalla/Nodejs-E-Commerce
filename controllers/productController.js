@@ -7,15 +7,14 @@ const ApiError = require("../utils/apiError");
 // @route GET /api/v1/products
 // @access Public
 exports.getProducts = asyncHandler(async (req, res) => {
-
   // 1) Filtering
   const queryStringObj = { ...req.query };
   const excludesFields = ["page", "sort", "limit", "fields"];
   excludesFields.forEach((field) => delete queryStringObj[field]);
 
   // Apply filteration using[ gte , gt , lte , lt]
-  let queryStr = JSON.stringify(queryStringObj)
-  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`)
+  let queryStr = JSON.stringify(queryStringObj);
+  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
   // 2) pagination
   const page = req.query.page * 1 || 1;
@@ -29,11 +28,19 @@ exports.getProducts = asyncHandler(async (req, res) => {
     .populate({ path: "category", select: "name -_id" });
 
   // 3) Sorting
-  if(req.query.sort){
-    const sortBy = req.query.sort.split(',').join(' ')
-    mongooseQuery = mongooseQuery.sort(sortBy)
-  }else {
-    mongooseQuery = mongooseQuery.sort("-createAt")
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    mongooseQuery = mongooseQuery.sort(sortBy);
+  } else {
+    mongooseQuery = mongooseQuery.sort("-createAt");
+  }
+
+  // 4) Fields Limiting
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    mongooseQuery = mongooseQuery.select(fields);
+  } else {
+    mongooseQuery = mongooseQuery.select("-__v");
   }
 
   //  Execute query
