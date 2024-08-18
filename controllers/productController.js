@@ -43,6 +43,30 @@ exports.getProducts = asyncHandler(async (req, res) => {
     mongooseQuery = mongooseQuery.select("-__v");
   }
 
+  // 5) Search
+  if (req.query.keyword) {
+    const keyword = req.query.keyword.trim();
+
+    const aggregationPipeline = [
+      {
+        $match: {
+          $or: [
+            { title: { $regex: keyword, $options: "i" } },
+            { description: { $regex: keyword, $options: "i" } },
+          ],
+        },
+      },
+    ];
+
+    const products = await Product.aggregate(aggregationPipeline);
+
+    return res.status(200).json({
+      results: products.length,
+      page,
+      data: products,
+    });
+  }
+
   //  Execute query
   const products = await mongooseQuery;
 
