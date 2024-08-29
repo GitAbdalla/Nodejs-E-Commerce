@@ -21,5 +21,5 @@ router.post("/",setCategoryIdToBody ,createSubCategoryValidator, createSubCatego
 router.get("/", createFilterObj,getSubCategories);
 router.get("/:id", getSubSubCategoryValidator, getSubCategory);
 router.put("/:id", updateSubCategoryValidator, updateSubCategory);
-router.delete("/id", deleteSubCategoryValidator, deleteSubCategory);
+router.delete("/:id", deleteSubCategoryValidator, deleteSubCategory);
 module.exports = router;

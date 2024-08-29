@@ -14,6 +14,11 @@ exports.createSubCategoryValidator = [
     .withMessage("Too short Subcategory name")
     .isLength({ max: 32 })
     .withMessage("Too long Subcategory name")
+    .custom((val , {req}) => {
+      req.body.slug = slugify(val)
+      return true
+
+    })
     .custom((val, { req }) => {
       console.log("Custom Validator Value:", val); // Debug log
       req.body.slug = slugify(val);
@@ -33,6 +38,11 @@ exports.updateSubCategoryValidator = [
     .withMessage("SubCategory required")
     .isMongoId()
     .withMessage("Invalid SubCategory id format"),
+    body('name').custom((val , {req}) => {
+      req.body.slug = slugify(val)
+      return true
+
+    }),
   validatorMiddleware,
 ];
 exports.deleteSubCategoryValidator = [
