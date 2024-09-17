@@ -55,7 +55,7 @@ exports.getAll = (Model , modelName ='') => asyncHandler(async (req, res) => {
   
     //  Execute query
     const { mongooseQuery, paginationResult } = apiFeatures;
-    const documents = await apiFeatures.mongooseQuery;
+    const documents = await mongooseQuery;
   
     res
       .status(200)
