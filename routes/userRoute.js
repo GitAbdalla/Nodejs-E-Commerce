@@ -14,6 +14,7 @@ const {
   updateUserValidator,
   getUserValidator,
   deleteUserValidator,
+  changeUserPasswordValidator,
 } = require("../utils/validators/userValidator");
 
 
@@ -29,7 +30,7 @@ router.put(
   updateUserValidator,
   updateUser
 );
-router.put("/changePassword/:id", changeUserPassword)
+router.put("/changePassword/:id", changeUserPasswordValidator ,changeUserPassword)
 router.delete("/:id", deleteUserValidator, deleteUser);
 
 module.exports = router;
