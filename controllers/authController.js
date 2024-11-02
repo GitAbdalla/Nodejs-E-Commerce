@@ -59,6 +59,8 @@ exports.protect = asyncHandler(async (req, res, next) => {
     );
   }
   //2) verify token (no change happens , expired token)
+  const decoded = jwt.verify(token,process.env.JWT_SECRET_KEY)
+  
   //3) check if user exists
   //4) check if user changed his password after token created
 });
