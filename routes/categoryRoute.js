@@ -17,6 +17,7 @@ const {
   createCategoryValidator,
 } = require("../utils/validators/categoryValidator");
 
+const AuthController = require('../controllers/authController')
 
 const subCategoriesRoute = require("./subCategoryRoute");
 
@@ -28,6 +29,6 @@ router.get("/", getCategories);
 router.get("/:id", getCategoryValidator, getCategory);
 router.put("/:id", uploadCategoryImage, resizeImage , updateCategoryValidator, updateCategory);
 router.delete("/:id", deleteCategoryValidator, deleteCategory);
-router.post("/", uploadCategoryImage ,resizeImage , createCategoryValidator, createCategory);
+router.post("/", AuthController.protect ,uploadCategoryImage ,resizeImage , createCategoryValidator, createCategory);
 
 module.exports = router;
