@@ -8,6 +8,7 @@ const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const User = require("../models/userModel");
 const ApiError = require("../utils/apiError");
+const generateToken = require('../utils/generateToken')
 
 exports.uploadUserImage = uploadSingleImage("profileImg");
 
@@ -84,10 +85,56 @@ exports.changeUserPassword = asyncHandler(async (req, res, next) => {
 // @desc Delete User
 // @route DELETE /api/v1/users/:id
 // @access Private
-
 exports.deleteUser = factory.deleteOne(User);
 
+// @desc Get Logged user data
+// @route DELETE /api/v1/users/getMe
+// @access Private/protect
 exports.getLoggedUserData = asyncHandler(async(req,res,next)=>{
   req.params.id = req.user._id
   next();
+})
+
+// @desc Update Logged user password
+// @route DELETE /api/v1/users/updateMyPassword
+// @access Private/protect
+exports.updateLoggedUserPassword = asyncHandler(async(req,res,next)=>{
+  //update user password based on user payload (req.user._id)
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      password : await bcrypt.hash(req.body.password , 12),
+      passwordChangedAt : Date.now(),
+    },
+    {
+      new: true,
+    }
+  );
+  const token = generateToken(user._id)
+  res.status(200).json({data: user , token})
+})
+
+// @desc Update Logged user data
+// @route DELETE /api/v1/users/updateMe
+// @access Private/protect
+exports.updateLoggedUserData = asyncHandler(async(req,res,next)=>{
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+    },
+    {new : true}
+  )
+  
+  res.status(200).json({data: updatedUser})
+})
+
+// @desc Deactivate Logged user 
+// @route DELETE /api/v1/users/deleteMe
+// @access Private/protect
+exports.deleteLoggedUserData = asyncHandler(async(req,res,next)=>{
+  await User.findByIdAndUpdate(req.user._id,{active: false})
+  res.status(204).json({status: 'Success'})
 })

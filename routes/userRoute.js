@@ -9,6 +9,9 @@ const {
   deleteUser,
   changeUserPassword,
   getLoggedUserData,
+  updateLoggedUserPassword,
+  updateLoggedUserData,
+  deleteLoggedUserData,
 } = require("../controllers/userController");
 const {
   createUserValidator,
@@ -16,12 +19,18 @@ const {
   getUserValidator,
   deleteUserValidator,
   changeUserPasswordValidator,
+  updateLoggedUserValidator,
 } = require("../utils/validators/userValidator");
 const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-router.get('/getMe',authController.protect,getLoggedUserData,getUser)
+router.use(authController.protect);
+
+router.get("/getMe", getLoggedUserData, getUser);
+router.put("/changeMyPassword",updateLoggedUserPassword);
+router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
+router.delete("/deleteMe", deleteLoggedUserData);
 
 // Admin
 router.use(authController.protect, authController.allowedTo("admin"));
