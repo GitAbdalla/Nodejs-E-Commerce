@@ -1,9 +1,12 @@
+const crypto = require("crypto");
+
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const ApiError = require("../utils/apiError");
 const User = require("../models/userModel");
+const sendEmail = require("../utils/sendEmail");
 
 const generateToken = (payload) => {
   return jwt.sign({ userId: payload }, process.env.JWT_SECRET_KEY, {
@@ -103,13 +106,103 @@ exports.allowedTo = (...roles) =>
     next();
   });
 
-  exports.forgetPassword = asyncHandler(async(req,res,next)=>{
-    // 1) Get User by email
-    const user = await User.findOne({email: req.body.email})
-    if(!user){
-      return next(
-        new ApiError(`There is no user with this email${req.body.email}`,404)
-      )
-    }
+// @desc Forgot password
+// @route POST /api/v1/auth/forgotPassword
+// @access Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  // 1) Get User by email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(
+      new ApiError(`There is no user with this email ${req.body.email}`, 404)
+    );
+  }
+  // 2) If user exist, generate hash reset random 6 digits and save it in db
+  const resetCode = Math.floor(
+    Math.random() * (999999 - 100000 + 1) + 100000
+  ).toString();
+  const hashedResetCode = crypto
+    .createHmac("sha256", process.env.JWT_SECRET_KEY)
+    .update(resetCode)
+    .digest("hex");
+  // Save in db
+  user.passwordResetCode = hashedResetCode;
+  // add expiration time
+  user.passwordResetExpires = Date.now() + 5 * 60 * 1000;
+  user.passwordResetVerified = false;
 
-  })
+  await user.save();
+
+  const message = `Hi ${user.name}, \n we received a request to reset the password on your E-shop Account. \n
+   ${resetCode} \n
+   Enter this code to compelete the reset. \n
+   Thanks for helping us keep your account secure \n
+   E-shop Team 
+   `;
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Your password reset code(valid for 5 min)",
+      message,
+    });
+  } catch (err) {
+    user.passwordResetCode = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordResetVerified = undefined;
+
+    await user.save();
+    return next(new ApiError("There is an error in sending email", 500));
+  }
+
+  res
+    .status(200)
+    .json({ status: "success", message: "reset code sent to email" });
+});
+
+// @desc Verify password reset code
+// @route POST /api/v1/auth/verifyResetCode
+// @access Public
+exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
+  const hashedResetCode = crypto
+    .createHmac("sha256", process.env.JWT_SECRET_KEY)
+    .update(req.body.resetCode)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetCode: hashedResetCode,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new ApiError("Reset code invalid or expired"));
+  }
+  user.passwordResetVerified = true;
+  await user.save();
+
+  res.status(200).json({ status: "success" });
+});
+
+// @desc Reset password
+// @route POST /api/v1/auth/resetPassword
+// @access Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(
+      new ApiError(`There is no user with this email ${req.body.email}`)
+    );
+  }
+
+  if (!user.passwordResetVerified) {
+    return next(new ApiError("Reset code not verified", 400));
+  }
+  
+  user.password = req.body.newPassword;
+  user.passwordResetCode = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordResetVerified = undefined;
+
+  await user.save();
+
+  const token = generateToken(user._id);
+  res.status(200).json({ token });
+});
