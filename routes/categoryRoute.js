@@ -8,7 +8,7 @@ const {
   deleteCategory,
   createCategory,
   uploadCategoryImage,
-  resizeImage
+  resizeImage,
 } = require("../controllers/categoryController");
 const {
   getCategoryValidator,
@@ -17,7 +17,7 @@ const {
   createCategoryValidator,
 } = require("../utils/validators/categoryValidator");
 
-const AuthController = require('../controllers/authController')
+const authController = require("../controllers/authController");
 
 const subCategoriesRoute = require("./subCategoryRoute");
 
@@ -27,8 +27,30 @@ router.use("/:categoryId/subcategories", subCategoriesRoute);
 
 router.get("/", getCategories);
 router.get("/:id", getCategoryValidator, getCategory);
-router.put("/:id", uploadCategoryImage, resizeImage , updateCategoryValidator, updateCategory);
-router.delete("/:id", deleteCategoryValidator, deleteCategory);
-router.post("/", AuthController.protect ,uploadCategoryImage ,resizeImage , createCategoryValidator, createCategory);
+router.put(
+  "/:id",
+  authController.protect,
+  authController.allowedTo("admin", "manager"),
+  uploadCategoryImage,
+  resizeImage,
+  updateCategoryValidator,
+  updateCategory
+);
+router.delete(
+  "/:id",
+  authController.protect,
+  authController.allowedTo("admin"),
+  deleteCategoryValidator,
+  deleteCategory
+);
+router.post(
+  "/",
+  authController.protect,
+  authController.allowedTo("admin", "manager"),
+  uploadCategoryImage,
+  resizeImage,
+  createCategoryValidator,
+  createCategory
+);
 
 module.exports = router;

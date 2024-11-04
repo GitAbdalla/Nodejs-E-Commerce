@@ -2,25 +2,25 @@ const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const asyncHandler = require("express-async-handler");
 
-
 const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const Category = require("../models/categoryModel");
 
-
-exports.uploadCategoryImage = uploadSingleImage('image');
+exports.uploadCategoryImage = uploadSingleImage("image");
 
 exports.resizeImage = asyncHandler(async (req, res, next) => {
   const filename = `category-${uuidv4()}-${Date.now()}.webp`;
 
-  await sharp(req.file.buffer)
-    .resize(600, 600)
-    .toFormat("webp")
-    .webp({ quality: 90 })
-    .toFile(`uploads/categories/${filename}`);
+  if (req.file) {
+    await sharp(req.file.buffer)
+      .resize(600, 600)
+      .toFormat("webp")
+      .webp({ quality: 90 })
+      .toFile(`uploads/categories/${filename}`);
 
-  // save image to db
-  req.body.image = filename;
+    // save image to db
+    req.body.image = filename;
+  }
   next();
 });
 
