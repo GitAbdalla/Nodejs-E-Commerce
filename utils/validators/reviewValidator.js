@@ -36,7 +36,7 @@ exports.updateReviewValidator = [
     if(!review){
       throw new Error(`There is no review with id ${val}`)
     }
-    if(review.user.toString() !== req.user._id.toString()){
+    if(review.user._id.toString() !== req.user._id.toString()){
       throw new Error(`You are not allowed to perform this action`)
     }
     return true
