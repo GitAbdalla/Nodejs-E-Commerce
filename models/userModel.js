@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema(
     wishList:[
       {
         type: mongoose.Schema.ObjectId,
-        ref: 'product'
+        ref: 'Product'
       }
     ]
   },
