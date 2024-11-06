@@ -15,9 +15,13 @@ const {
   deleteProductValidator,
 } = require("../utils/validators/productValidator");
 
+const reviewRoute = require('./reviewRoute')
 const authController = require("../controllers/authController");
 
 const router = express.Router();
+
+// nested route
+router.use("/:productId/reviews", reviewRoute);
 
 router.get("/", getProducts);
 router.get("/:id", getProductValidator, getProduct);
