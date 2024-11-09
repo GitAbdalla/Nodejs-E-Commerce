@@ -22,11 +22,11 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    shippingAddress:{
-        details: String,
-        phone: String,
-        city: String,
-        postalCode: String,
+    shippingAddress: {
+      details: String,
+      phone: String,
+      city: String,
+      postalCode: String,
     },
     shippingPrice: {
       type: Number,
@@ -53,5 +53,16 @@ const orderSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+orderSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'user',
+    select: "name profileImg email phone ",
+  }).populate({
+    path: "cartItems.product",
+    select: "title imageCover",
+  });
+  next();
+});
 
 module.exports = mongoose.model("Order", orderSchema);
