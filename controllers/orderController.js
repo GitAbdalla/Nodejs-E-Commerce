@@ -68,3 +68,35 @@ exports.findAllOrders = factory.getAll(Order);
 // @route POST /api/v1/order
 // @access protected/user/admin/manager
 exports.findSpecificOrder = factory.getOne(Order)
+
+// @desc update order paid status to paid
+// @route POST /api/v1/order/:id/pay
+// @access protected/admin/manager
+exports.updateOrderToPaid = asyncHandler(async(req,res,next)=>{
+    const order= await Order.findById(req.params.id);
+    if(!order){
+        return next(new ApiError(`There is no order with this id: ${req.params.id}`,))
+    }
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    const updatedOrder = await order.save();
+    
+    res.status(200).json({status:'success', data: updatedOrder})
+})
+
+// @desc update order deliverd status 
+// @route POST /api/v1/order/:id/deliver
+// @access protected/admin/manager
+exports.updateOrderToDeliverd = asyncHandler(async(req,res,next)=>{
+    const order= await Order.findById(req.params.id);
+    if(!order){
+        return next(new ApiError(`There is no order with this id: ${req.params.id}`,))
+    }
+
+    order.isDeliverd = true;
+    order.deliverdAt = Date.now();
+    const updatedOrder = await order.save()
+    
+    res.status(200).json({status:'success', data: updatedOrder})
+})
