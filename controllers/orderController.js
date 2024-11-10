@@ -192,27 +192,24 @@ const createCardOrder = async (session) => {
 // @desc    This webhook will run when stripe payment success paid
 // @route   POST /webhook-checkout
 // @access  Protected/User
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
-  let event = req.body;
+  const sig = req.headers['stripe-signature'];
+  let event;
 
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.log(`⚠️  Webhook signature verification failed: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
 
-  if (endpointSecret) {
-    // Get the signature sent by Stripe
-    const signature = req.headers["stripe-signature"];
-    try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        signature,
-        endpointSecret
-      );
-    } catch (err) {
-      console.log(`⚠️  Webhook signature verification failed.`, err.message);
-      return res.sendStatus(400);
-    }
+  // Handle the event
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    createCardOrder(session);
   }
-  if (event.type === "checkout.session.completed") {
-    createCardOrder(event.data.object);
-  }
+
   res.status(200).json({ received: true });
 });
