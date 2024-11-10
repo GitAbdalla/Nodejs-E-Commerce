@@ -1,7 +1,7 @@
-const path = require('path')
+const path = require("path");
 
-const cors = require('cors')
-const compression = require('compression')
+const cors = require("cors");
+const compression = require("compression");
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
@@ -14,7 +14,8 @@ const globalError = require("./middlewares/errorMiddleware");
 
 
 // Routes
-const mountRoutes = require('./routes')
+const mountRoutes = require("./routes");
+const {webhookCheckout} = require('./controllers/orderController')
 
 // connect with db
 dbConnection();
@@ -22,14 +23,21 @@ dbConnection();
 //express app
 const app = express();
 
-app.use(cors())
-app.options('*', cors())
+app.use(cors());
+app.options("*", cors());
 
-app.use(compression())
+app.use(compression());
+
+//Checkout webhook
+app.post(
+  "/webhook-checkout",
+  express.raw({ type: "application/json" }),
+  webhookCheckout
+);
 
 //Middlewares
 app.use(express.json());
-app.use(express.static(path.join(__dirname,'uploads')))
+app.use(express.static(path.join(__dirname, "uploads")));
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -37,7 +45,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Routes
-mountRoutes(app)
+mountRoutes(app);
 
 app.use("*", (req, res, next) => {
   next(new ApiError(`Cant find this route: ${req.originalUrl}`, 400));
