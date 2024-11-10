@@ -1,5 +1,7 @@
 const path = require('path')
 
+const cors = require('cors')
+const compression = require('compression')
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
@@ -19,6 +21,11 @@ dbConnection();
 
 //express app
 const app = express();
+
+app.use(cors())
+app.options('*', cors())
+
+app.use(compression())
 
 //Middlewares
 app.use(express.json());
