@@ -1,11 +1,11 @@
 const express = require("express");
 
 const authController = require("../controllers/authController");
-const { createCashOrder, findAllOrders, filterOrderForLoggedUser, findSpecificOrder, updateOrderToPaid, updateOrderToDeliverd } = require("../controllers/orderController");
+const { createCashOrder, findAllOrders, filterOrderForLoggedUser, findSpecificOrder, updateOrderToPaid, updateOrderToDeliverd, checkoutSession } = require("../controllers/orderController");
 
 const router = express.Router();
 
-
+router.get('/checkout-session/:cartId', authController.protect ,authController.allowedTo('user') , checkoutSession )
 
 router.post('/:cartId', authController.allowedTo('user'), createCashOrder);
 router.get('/:id',  findSpecificOrder)
