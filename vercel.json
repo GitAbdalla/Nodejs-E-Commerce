@@ -4,13 +4,16 @@
     { "src": "server.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { 
-      "src": "/webhook-checkout",
-      "dest": "/server.js",
-      "methods": ["POST"],
+    {
+      "src": "/webhook-checkout", 
+      "dest": "/server.js", 
       "headers": {
         "Content-Type": "application/json"
       }
+    },
+    {
+      "src": "/api/(.*)", 
+      "dest": "/server.js"
     }
   ]
 }
