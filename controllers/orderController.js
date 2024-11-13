@@ -142,7 +142,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
       },
     ],
     mode: "payment",
-    success_url: `${req.protocol}://${req.get("host")}/api/v1/orders`,
+    success_url: `${req.protocol}://${req.get("host")}/api/v1/products`,
     cancel_url: `${req.protocol}://${req.get("host")}/cart`,
     customer_email: req.user.email,
     client_reference_id: req.params.cartId,
@@ -152,6 +152,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   //4) send session to response
   res.status(200).json({ status: "success", session });
 });
+
 
 const createCardOrder = async (session) => {
   const cartId = session.client_reference_id;
@@ -169,7 +170,7 @@ const createCardOrder = async (session) => {
     totalOrderPrice: oderPrice,
     isPaid: true,
     paidAt: Date.now(),
-    paymentMethodType: "card",
+    paymentMethodType: 'card',
   });
 
   // 4) After creating order, decrement product quantity, increment product sold
@@ -187,11 +188,12 @@ const createCardOrder = async (session) => {
   }
 };
 
+
 // @desc    This webhook will run when stripe payment success paid
 // @route   POST /webhook-checkout
 // @access  Protected/User
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
-  const sig = req.headers["stripe-signature"];
+  const sig = req.headers['stripe-signature'];
 
   let event;
 
@@ -204,10 +206,10 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  if (event.type === "checkout.session.completed") {
+  if (event.type === 'checkout.session.completed') {
     //  Create order
     createCardOrder(event.data.object);
   }
 
-  res.status(200).json({ status: "success", received: true });
+  res.status(200).json({status:"success", received: true });
 });
