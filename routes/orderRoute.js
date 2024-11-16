@@ -20,7 +20,7 @@ router.get(
   checkoutSession
 );
 
-router.post("/:cartId", authController.allowedTo("user"), createCashOrder);
+router.post("/:cartId", authController.protect ,authController.allowedTo("user"), createCashOrder);
 router.get("/:id", findSpecificOrder);
 router.get(
   "/",
